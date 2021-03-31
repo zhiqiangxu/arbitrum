@@ -160,7 +160,8 @@ export class L2Bridge {
       erc20L1Address
     )
     if (customTokenAddress !== ethers.constants.AddressZero) {
-      const customTokenContract = IArbToken__factory.connect(
+      // Here we don't use the particlar custom token's interface; for the sake of this sdk that's fine
+      const customTokenContract = StandardArbERC20__factory.connect(
         customTokenAddress,
         this.l2Signer
       )

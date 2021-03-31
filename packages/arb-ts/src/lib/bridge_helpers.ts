@@ -79,6 +79,12 @@ export interface OutboxProofData {
   calldataForL1: string
 }
 
+export interface ActivateCustomTokenResult {
+  seqNum: BigNumber
+  l1Addresss: string
+  l2Address: string
+}
+
 export type ChainIdOrProvider = BigNumber | providers.Provider
 
 const NODE_INTERFACE_ADDRESS = '0x00000000000000000000000000000000000000C8'
@@ -210,10 +216,10 @@ export class BridgeHelper {
 
   static getUpdateTokenInfoEventResult = async (
     l1Transaction: providers.TransactionReceipt,
-    l2BridgeAddress: string
+    l1BridgeAddress: string
   ): Promise<Array<UpdateTokenEventResult>> => {
     const factory = new EthERC20Bridge__factory()
-    const contract = factory.attach(l2BridgeAddress)
+    const contract = factory.attach(l1BridgeAddress)
     const iface = contract.interface
     const event = iface.getEvent('UpdateTokenInfo')
     const eventTopic = iface.getEventTopic(event)
@@ -221,6 +227,25 @@ export class BridgeHelper {
     const logs = l1Transaction.logs.filter(log => log.topics[0] === eventTopic)
     return logs.map(
       log => (iface.parseLog(log).args as unknown) as UpdateTokenEventResult
+    )
+  }
+
+  static getActivateCustomTokenEventResult = async (
+    l1Transaction: providers.TransactionReceipt,
+    l1BridgeAddress: string
+  ): Promise<Array<ActivateCustomTokenResult>> => {
+    const factory = new EthERC20Bridge__factory()
+    const contract = factory.attach(l1BridgeAddress)
+    const iface = contract.interface
+    const event = iface.getEvent('ActivateCustomToken')
+    const eventTopic = iface.getEventTopic(event)
+
+    // TODO: filter out if token type doesn't match
+    const logs = l1Transaction.logs.filter(log => {
+      return log.topics[0] === eventTopic
+    })
+    return logs.map(
+      log => (iface.parseLog(log).args as unknown) as ActivateCustomTokenResult
     )
   }
 
