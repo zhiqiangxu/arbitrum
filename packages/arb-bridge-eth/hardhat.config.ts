@@ -2,7 +2,7 @@ import { task } from 'hardhat/config'
 import 'dotenv/config'
 import * as fs from 'fs'
 
-import 'hardhat-deploy'
+import '@typechain/hardhat'
 
 import '@nomiclabs/hardhat-waffle'
 import 'hardhat-typechain'
