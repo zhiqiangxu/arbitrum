@@ -12,6 +12,7 @@ import { Rollup__factory } from '../src/lib/abi/factories/Rollup__factory'
 import { StandardArbERC20__factory } from '../src/lib/abi/factories/StandardArbERC20__factory'
 import { Outbox__factory } from '../src/lib/abi/factories/Outbox__factory'
 import { L2GatewayRouter__factory } from '../src/lib/abi/factories/L2GatewayRouter__factory'
+import { IWETH9__factory } from '../src/lib/abi/factories/IWETH9__factory'
 
 import { Inbox__factory } from '../src/lib/abi/factories/Inbox__factory'
 import { StandardArbERC20 } from '../src/lib/abi/StandardArbERC20'
@@ -71,6 +72,7 @@ const {
   defaultWait,
   executeOutGoingMessages,
   outBoxUpdateTimeout,
+  l1WethAddress,
 } = config[network]
 
 if (
@@ -95,7 +97,7 @@ const wait = (ms = 0) => {
   return new Promise(res => setTimeout(res, ms || defaultWait))
 }
 
-const depositAmount = '0.1'
+const depositAmount = '0.01'
 
 let erc20Address = existentTestERC20
 prettyLog('Using preFundedWallet: ' + preFundedWallet.address)
@@ -456,6 +458,83 @@ describe('ERC20', () => {
         testWalletL2Balance.add(tokenWithdrawAmount).eq(tokenDepositAmount)
     ).to.be.true
   })
+})
+
+describe.only('WETH', async () => {
+  const wethAmount = utils.parseEther('0.000023')
+  it('setup: approve and wrap some WETH', async () => {
+    const WETH = IWETH9__factory.connect(l1WethAddress, l1TestWallet)
+    let res = await bridge.approveToken(l1WethAddress)
+    let rec = await res.wait()
+    let data = await bridge.getAndUpdateL1TokenData(l1WethAddress)
+    const allowed = data.ERC20 && data.ERC20.allowed
+    expect(allowed).to.be.true
+
+    res = await WETH.deposit({
+      value: wethAmount,
+    })
+    rec = await res.wait()
+    data = await bridge.getAndUpdateL1TokenData(l1WethAddress)
+
+    const wethBalance = data.ERC20 && data.ERC20.balance
+    if (!wethBalance) throw new Error('wethBalance undefined')
+    console.warn('wethBalance', wethBalance.toString())
+
+    expect(wethBalance.eq(wethAmount)).to.be.true
+  })
+
+  let initialL1WethSupply: BigNumber
+  let initialUserL1WETHBalance: BigNumber
+  it('successfully deposits and trigger retryable', async () => {
+    const WETH = IWETH9__factory.connect(l1WethAddress, l1TestWallet)
+    initialL1WethSupply = await WETH.totalSupply()
+    initialUserL1WETHBalance = await WETH.balanceOf(l1TestWallet.address)
+
+    const res = await bridge.deposit(l1WethAddress, wethAmount, {}, undefined)
+    const rec = await res.wait()
+
+    expect(rec.status).to.equal(1)
+    prettyLog('WETH deposit: l1 txn succeeded')
+
+    const seqNums = await bridge.getInboxSeqNumFromContractTransaction(rec)
+    if (seqNums === undefined) {
+      throw new Error('no seq num')
+    }
+    expect(seqNums.length).to.equal(1)
+
+    const seqNum = seqNums[0]
+    prettyLog('seqnum' + seqNum)
+
+    const l2RetryableHash = await bridge.calculateL2RetryableTransactionHash(
+      seqNum
+    )
+    prettyLog('l2RetryableHash ' + l2RetryableHash)
+
+    const l2RedeemHash = await bridge.calculateRetryableAutoRedeemTxnHash(
+      seqNum
+    )
+    prettyLog('l2RedeemHash ' + l2RedeemHash)
+
+    const redeemReceipt = await arbProvider.waitForTransaction(
+      l2RedeemHash,
+      undefined,
+      1000 * 60 * 10
+    )
+    expect(redeemReceipt.status).to.equal(1)
+    prettyLog('auto-redeem suceeeded ' + l2RedeemHash)
+
+    const retryableReceipt = await arbProvider.waitForTransaction(
+      l2RetryableHash
+    )
+
+    expect(retryableReceipt.status).to.equal(1)
+
+    prettyLog('retryable succeeded ' + l2RetryableHash)
+  })
+
+  // it('balances updated after deposit', async()=>{
+  //   const
+  // })
 })
 
 describe.skip('trigger outgoing messages', async () => {

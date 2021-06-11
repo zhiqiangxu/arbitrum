@@ -19,6 +19,8 @@ export default {
     defaultWait: 0,
     executeOutGoingMessages: false,
     outBoxUpdateTimeout: 10000,
+    l1WethAddress: '',
+    l2WethAddress: '',
   },
   kovan5: {
     ethRPC: 'https://kovan.infura.io/v3/' + process.env['INFURA_KEY'],
@@ -37,6 +39,8 @@ export default {
     defaultWait: 0,
     executeOutGoingMessages: false,
     outBoxUpdateTimeout: 100000,
+    l1WethAddress: '',
+    l2WethAddress: '',
   },
   rinkArby: {
     ethRPC: 'https://rinkeby.infura.io/v3/' + process.env['INFURA_KEY'],
@@ -52,6 +56,8 @@ export default {
     defaultWait: 0,
     executeOutGoingMessages: false,
     outBoxUpdateTimeout: 100000,
+    l1WethAddress: '0xc778417e063141139fce010982780140aa0cd5ab',
+    l2WethAddress: '',
   },
 
   devnet: {
@@ -69,5 +75,7 @@ export default {
     defaultWait: 10000,
     executeOutGoingMessages: false,
     outBoxUpdateTimeout: 10000,
+    l1WethAddress: '',
+    l2WethAddress: '',
   },
 }
