@@ -10,9 +10,13 @@ export const setArbCustomGateways = async (tokens: string[]) => {
   return setGateWays(tokens, 'arbCustom')
 }
 
+export const unsetGateways = async (tokens: string[]) => {
+  return setGateWays(tokens, 'none')
+}
+
 export const setGateWays = async (
   tokens: string[],
-  type: 'standard' | 'arbCustom',
+  type: 'standard' | 'arbCustom' | 'none',
   overrideGateways: string[] = []
 ) => {
   const { bridge, l1Network } = await instantiateBridge()
@@ -65,6 +69,8 @@ export const setGateWays = async (
       return tokens.map(() => l1Network.tokenBridge.l1ERC20Gateway)
     } else if (type === 'arbCustom') {
       return tokens.map(() => l1Network.tokenBridge.l1CustomGateway)
+    } else if (type === 'none') {
+      return tokens.map(() => constants.AddressZero)
     } else {
       throw new Error('Unhandled else case')
     }
