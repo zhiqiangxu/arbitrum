@@ -64,6 +64,10 @@ func NewSnapshot(mach machine.Machine, time inbox.ChainTime, lastInboxSeq *big.I
 	return snap, nil
 }
 
+func (s *Snapshot) CodeHash() common.Hash {
+	return s.mach.CodePointHash()
+}
+
 // AddMessage can only be called if the snapshot is uniquely owned
 // If an error is returned, s is unmodified
 func (s *Snapshot) AddMessage(msg message.Message, sender common.Address, targetHash common.Hash) (*evm.TxResult, error) {
