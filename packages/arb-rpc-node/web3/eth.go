@@ -37,6 +37,7 @@ import (
 	"github.com/offchainlabs/arbitrum/packages/arb-rpc-node/snapshot"
 	arbcommon "github.com/offchainlabs/arbitrum/packages/arb-util/common"
 	"github.com/offchainlabs/arbitrum/packages/arb-util/machine"
+	"github.com/offchainlabs/arbitrum/packages/arb-util/value"
 )
 
 var logger = log.With().Caller().Stack().Str("component", "web3").Logger()
@@ -238,27 +239,46 @@ func (s *Server) Call(callArgs CallTxArgs, blockNum rpc.BlockNumberOrHash) (hexu
 		s.counter.WithLabelValues("eth_call", success).Inc()
 		return result, err
 	}
-
-	snap, err := s.getSnapshotForNumberOrHash(blockNum)
+	res, _, err := s.call(callArgs, blockNum)
 	if err != nil {
 		s.counter.WithLabelValues("eth_call", "false").Inc()
 		return nil, err
 	}
-	from, msg := buildCallMsg(callArgs, s.maxCallGas)
-
-	res, _, err := snap.Call(msg, from)
-	res, err = handleCallResult(res, err)
-	if err != nil {
-		s.counter.WithLabelValues("eth_call", "false").Inc()
-		return nil, err
-	}
-
 	if res.ResultCode != evm.ReturnCode {
 		s.counter.WithLabelValues("eth_call", "false").Inc()
 		return nil, evm.HandleCallError(res, s.ganacheMode)
 	}
 	s.counter.WithLabelValues("eth_call", "true").Inc()
 	return res.ReturnData, nil
+}
+
+func (s *Server) call(callArgs CallTxArgs, blockNum rpc.BlockNumberOrHash) (*evm.TxResult, []value.Value, error) {
+	snap, err := s.getSnapshotForNumberOrHash(blockNum)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	from, tx := buildTransactionForCall(callArgs, s.maxCallGas)
+	var dest arbcommon.Address
+	if tx.To() != nil {
+		dest = arbcommon.NewAddressFromEth(*tx.To())
+	}
+	msg := message.ContractTransaction{
+		BasicTx: message.BasicTx{
+			MaxGas:      new(big.Int).SetUint64(tx.Gas()),
+			GasPriceBid: tx.GasPrice(),
+			DestAddress: dest,
+			Payment:     tx.Value(),
+			Data:        tx.Data(),
+		},
+	}
+
+	res, debugPrints, err := snap.Call(msg, from)
+	res, err = handleCallResult(res, err)
+	if err != nil {
+		return nil, nil, err
+	}
+	return res, debugPrints, nil
 }
 
 func (s *Server) EstimateGas(args CallTxArgs) (hexutil.Uint64, error) {
@@ -640,23 +660,6 @@ func buildTransactionImpl(args CallTxArgs, gas uint64) (arbcommon.Address, *type
 		Value:    value,
 		Data:     data,
 	})
-}
-
-func buildCallMsg(args CallTxArgs, maxGas uint64) (arbcommon.Address, message.ContractTransaction) {
-	from, tx := buildTransactionForCall(args, maxGas)
-	var dest arbcommon.Address
-	if tx.To() != nil {
-		dest = arbcommon.NewAddressFromEth(*tx.To())
-	}
-	return from, message.ContractTransaction{
-		BasicTx: message.BasicTx{
-			MaxGas:      new(big.Int).SetUint64(tx.Gas()),
-			GasPriceBid: tx.GasPrice(),
-			DestAddress: dest,
-			Payment:     tx.Value(),
-			Data:        tx.Data(),
-		},
-	}
 }
 
 func handleCallResult(res *evm.TxResult, err error) (*evm.TxResult, error) {
