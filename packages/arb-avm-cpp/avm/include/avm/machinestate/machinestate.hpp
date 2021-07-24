@@ -181,6 +181,8 @@ struct MachineState {
     BlockReason isBlocked(bool newMessages) const;
 
     CodePoint loadCurrentInstruction() const;
+    CodePoint currentSegmentStart() const;
+
     const Operation& loadCurrentOperation() const;
     uint256_t nextGasCost() const;
 

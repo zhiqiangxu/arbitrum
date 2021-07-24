@@ -96,6 +96,11 @@ func (m *Machine) CodePointHash() (ret common.Hash) {
 	return
 }
 
+func (m *Machine) SegmentStartCodePointHash() (ret common.Hash) {
+	C.machineSegmentStartCodePointHash(m.c, unsafe.Pointer(&ret[0]))
+	return
+}
+
 func (m *Machine) Clone() machine.Machine {
 	cMachine := C.machineClone(m.c)
 	ret := &Machine{cMachine}

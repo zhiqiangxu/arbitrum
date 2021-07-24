@@ -64,8 +64,8 @@ func NewSnapshot(mach machine.Machine, time inbox.ChainTime, lastInboxSeq *big.I
 	return snap, nil
 }
 
-func (s *Snapshot) CodeHash() common.Hash {
-	return s.mach.CodePointHash()
+func (s *Snapshot) SegmentStartCodePointHash() common.Hash {
+	return s.mach.SegmentStartCodePointHash()
 }
 
 // AddMessage can only be called if the snapshot is uniquely owned

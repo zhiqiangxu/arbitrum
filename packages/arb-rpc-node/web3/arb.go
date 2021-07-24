@@ -72,10 +72,10 @@ func (a *Arb) TraceCall(callArgs CallTxArgs, blockNum rpc.BlockNumberOrHash) (st
 	return trace.String(), nil
 }
 
-func (a *Arb) CodeHash(blockNum rpc.BlockNumberOrHash) (hexutil.Bytes, error) {
+func (a *Arb) SegmentStartCodeHash(blockNum rpc.BlockNumberOrHash) (hexutil.Bytes, error) {
 	snap, err := a.srv.getSnapshotForNumberOrHash(blockNum)
 	if err != nil {
 		return nil, err
 	}
-	return snap.CodeHash().Bytes(), nil
+	return snap.SegmentStartCodePointHash().Bytes(), nil
 }

@@ -83,6 +83,14 @@ void machineCodePointHash(CMachine* m, void* ret) {
     std::copy(val.begin(), val.end(), reinterpret_cast<char*>(ret));
 }
 
+void machineSegmentStartCodePointHash(CMachine* m, void* ret) {
+    auto cp_hash =
+        hash(static_cast<Machine*>(m)->machine_state.currentSegmentStart());
+    std::array<unsigned char, 32> val{};
+    to_big_endian(cp_hash, val.begin());
+    std::copy(val.begin(), val.end(), reinterpret_cast<char*>(ret));
+}
+
 CStatus machineCurrentStatus(CMachine* m) {
     auto mach = static_cast<Machine*>(m);
     switch (mach->currentStatus()) {

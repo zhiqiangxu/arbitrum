@@ -443,6 +443,13 @@ CodePoint MachineState::loadCurrentInstruction() const {
     return loaded_segment->segment->loadCodePoint(pc.pc);
 }
 
+CodePoint MachineState::currentSegmentStart() const {
+    if (!loaded_segment || loaded_segment->segment->segmentID() != pc.segment) {
+        loaded_segment = std::make_optional(code->loadCodeSegment(pc.segment));
+    }
+    return loaded_segment->segment->loadCodePoint(loaded_segment->op_count - 1);
+}
+
 const Operation& MachineState::loadCurrentOperation() const {
     if (!loaded_segment || loaded_segment->segment->segmentID() != pc.segment) {
         loaded_segment = std::make_optional(code->loadCodeSegment(pc.segment));

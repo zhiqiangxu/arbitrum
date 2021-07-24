@@ -73,6 +73,7 @@ ByteSlice machineMarshallState(CMachine* m);
 char* machineInfo(CMachine* m);
 
 void machineCodePointHash(CMachine* m, void*);
+void machineSegmentStartCodePointHash(CMachine* m, void* ret);
 
 CMachineExecutionConfig* machineExecutionConfigCreate();
 void machineExecutionConfigDestroy(CMachineExecutionConfig* m);

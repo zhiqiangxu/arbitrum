@@ -35,6 +35,7 @@ type Machine interface {
 	String() string
 	Hash() common.Hash
 	CodePointHash() common.Hash
+	SegmentStartCodePointHash() common.Hash
 
 	Clone() Machine
 
