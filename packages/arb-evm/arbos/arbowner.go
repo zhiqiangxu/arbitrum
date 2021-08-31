@@ -44,6 +44,9 @@ var ChainOwnerParamId [32]byte = hashing.SoliditySHA3([]byte("ChainOwner"))
 var NetworkFeeRecipientParamId [32]byte = hashing.SoliditySHA3([]byte("NetworkFeeRecipient"))
 var CongestionFeeRecipientParamId [32]byte = hashing.SoliditySHA3([]byte("CongestionFeeRecipient"))
 var EnableL1ContractAddressAliasingParamId = hashing.SoliditySHA3([]byte("EnableL1ContractAddressAliasing"))
+var SpeedLimitPerSecondId = hashing.SoliditySHA3([]byte("SpeedLimitPerSecond"))
+var TxGasLimitId = hashing.SoliditySHA3([]byte("TxGasLimit"))
+var GasPoolMaxId = hashing.SoliditySHA3([]byte("GasPoolMax"))
 
 func init() {
 	arbowner, err := abi.JSON(strings.NewReader(arboscontracts.ArbOwnerABI))
