@@ -123,6 +123,9 @@ func startup() error {
 		fmt.Println("Missing --rollup.machine.filename")
 	}
 
+	if config.Node.Type != "forwarder" {
+		panic("node type should be forwarder")
+	}
 	var rpcMode web3.RpcMode
 	if config.Node.Type == "forwarder" {
 		if config.Node.Forwarder.Target == "" {
@@ -213,6 +216,9 @@ func startup() error {
 	}()
 
 	var sequencerFeed chan broadcaster.BroadcastFeedMessage
+	if len(config.Feed.Input.URLs) != 0 {
+		panic("input feed should be empty")
+	}
 	if len(config.Feed.Input.URLs) == 0 {
 		logger.Warn().Msg("Missing --feed.url so not subscribing to feed")
 	} else {

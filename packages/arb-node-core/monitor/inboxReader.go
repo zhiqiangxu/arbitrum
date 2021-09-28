@@ -138,7 +138,7 @@ func (ir *InboxReader) WaitToCatchUp(ctx context.Context) {
 
 }
 
-const inboxReaderDelay int64 = 4
+const inboxReaderDelay int64 = 12
 
 func (ir *InboxReader) getMessages(ctx context.Context) error {
 	from, err := ir.getNextBlockToRead()
